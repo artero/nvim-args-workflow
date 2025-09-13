@@ -39,7 +39,7 @@ Args (3): ► config.lua  editor.lua  init.lua
 ### With [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
 {
-  'yourusername/nvim-args-workflow',
+  'artero/nvim-args-workflow',
   dependencies = {
     'nvim-telescope/telescope.nvim', -- Optional but recommended
   },
@@ -52,7 +52,7 @@ Args (3): ► config.lua  editor.lua  init.lua
 ### With [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use {
-  'yourusername/nvim-args-workflow',
+  'artero/nvim-args-workflow',
   requires = { 'nvim-telescope/telescope.nvim' },
   config = function()
     require('args-workflow').setup()
