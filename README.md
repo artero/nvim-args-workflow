@@ -74,7 +74,6 @@ require('args-workflow').setup({
   
   -- Visual configuration
   display = {
-    current_indicator = '►',    -- Indicator for current file
     title_hl = 'Title',        -- Highlight group for title
     current_hl = 'String',     -- Highlight group for current file
     other_hl = 'Comment',      -- Highlight group for other files
@@ -83,14 +82,21 @@ require('args-workflow').setup({
   -- Telescope integration
   telescope = {
     enable = true,             -- Enable telescope integration
-    keymap = '<C-a>',         -- Key to convert selection to args
+    keymap = '<C-a>',          -- Key to convert selection to args
   },
   
   -- Auto-display configuration  
   auto_display = {
     enable = true,             -- Auto-display on args changes
-    delay = 50,               -- Delay in milliseconds
+    delay = 50,                -- Delay in milliseconds
   },
+
+  -- Display file name options
+  filename = {
+    max_length = 25,           -- Maximum filename length before cropping
+    crop_strategy = "smart",   -- "smart" keeps extension, "simple" just truncates
+  },
+
 })
 ```
 
