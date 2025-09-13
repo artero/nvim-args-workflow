@@ -22,7 +22,6 @@ Args (3): ► config.lua  editor.lua  init.lua
 ### Enhanced Navigation
 - `[a` / `]a` - Navigate between args with visual feedback
 - `[A` / `]A` - Jump to first/last arg with visual feedback
-- No more "Cannot go beyond" errors!
 
 ### Telescope Integration
 - Select multiple files with `<Tab>` 
@@ -172,7 +171,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by Vim's native argument list functionality
+- Inspired by [Mastering Vim Quickly: From WTF to OMG in no time]([url](https://www.amazon.com/Mastering-Vim-Quickly-WTF-time/dp/1983325740))
 - Built for the modern Neovim ecosystem
 - Telescope integration for seamless workflows
 
