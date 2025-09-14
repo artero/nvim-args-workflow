@@ -28,7 +28,7 @@ local default_config = {
   auto_display = {
     enable = true, -- Auto-display on args changes
     delay = 50, -- Delay in milliseconds
-    timeout = 100000, -- Timeout for auto-close
+    timeout = 1500, -- Timeout for auto-close
   },
 }
 
