@@ -14,10 +14,6 @@ A powerful Neovim plugin that supercharges Vim's argument list functionality wit
 ### Visual Args Display
 ![args-workflow](args-window.png)
 
-- Current file highlighted with `►` in **green**
-- Other files in **muted gray**  
-- File count in **blue title**
-
 ### Enhanced Navigation
 - `[a` / `]a` - Navigate between args with visual feedback
 - `[A` / `]A` - Jump to first/last arg with visual feedback
