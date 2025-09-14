@@ -29,295 +29,43 @@ local default_config = {
     enable = true, -- Auto-display on args changes
     delay = 50, -- Delay in milliseconds
   },
-
-  filename = {
-    max_length = 25, -- Maximum filename length before cropping
-    crop_strategy = "smart", -- "smart" keeps extension, "simple" just truncates
-  },
 }
 
 -- Plugin configuration
 M.config = {}
 
--- Function to crop long filenames
-local function crop_filename(filename, max_length, strategy)
-  strategy = strategy or "smart"
-
-  if #filename <= max_length then
-    return filename
-  end
-
-  if strategy == "smart" then
-    -- Try to keep extension
-    local name, ext = filename:match("^(.+)%.(.+)$")
-    if name and ext and #ext <= 4 then -- Only for reasonable extensions
-      local available = max_length - #ext - 2 -- -2 for "…" and "."
-      if available > 3 then
-        return name:sub(1, available) .. "…." .. ext
-      end
-    end
-  end
-
-  -- Fallback: just truncate with ellipsis
-  return filename:sub(1, max_length - 1) .. "…"
-end
-
 -- Function to display the argument list with visual indicators and colors
 function M.print_args()
+  local output = {}
   local argc = vim.fn.argc()
-  if argc == 0 then
-    vim.notify("No files in argument list", vim.log.levels.INFO)
-    return
-  end
 
-  -- For many files or auto-display, use simple notification to avoid "Press ENTER"
-  if argc > 8 or M.config.auto_display.enable then
-    M.show_args_minimal()
-    return
-  end
-
-  -- For few files, use the original echo method
-  local current_idx = vim.fn.argidx() + 1
-  local output = { { "Args (" .. argc .. "): ", M.config.display.title_hl } }
+  -- Show count in title
+  table.insert(output, { "Args (" .. argc .. "): ", M.config.display.title_hl })
 
   for i = 1, argc do
     local arg = vim.fn.argv(i - 1)
-    local filename = arg:match("^.+/(.+)$") or arg
-    local cropped_name = crop_filename(filename, M.config.filename.max_length, M.config.filename.crop_strategy)
+    local fileName = arg:match("^.+/(.+)$") or arg
 
-    local is_current = (arg == vim.fn.bufname())
-    local file_text = cropped_name
-    local hl_group = is_current and M.config.display.current_hl or M.config.display.other_hl
+    if arg == vim.fn.bufname() then
+      -- Current file with highlighted indicator
+      table.insert(output, { M.config.display.current_indicator .. " " .. fileName, M.config.display.current_hl })
+    else
+      -- Other files in muted color
+      table.insert(output, { "  " .. fileName, M.config.display.other_hl })
+    end
 
-    table.insert(output, { file_text, hl_group })
-
+    -- Add separator except for last item
     if i < argc then
       table.insert(output, { "  ", "Normal" })
     end
   end
 
-  vim.api.nvim_echo(output, false, {})
-end
-
--- Minimal display to avoid "Press ENTER" prompt
-function M.show_args_minimal()
-  local argc = vim.fn.argc()
-  local current_idx = vim.fn.argidx() + 1
-  local editor_width = vim.api.nvim_get_option("columns")
-  local editor_height = vim.api.nvim_get_option("lines")
-
-  -- Use full width minus small margins
-  local available_width = editor_width - 4
-  local prefix = "Args(" .. argc .. "): "
-  local content_width = available_width - #prefix
-
-  -- Calculate how many characters we can give to each filename
-  local estimated_files_visible = math.min(argc, math.max(5, math.floor(content_width / 15))) -- At least 5 files, ~15 chars each
-  local max_filename_length = math.max(12, math.floor(content_width / estimated_files_visible) - 3) -- -3 for separators
-
-  -- Build display with more generous spacing
-  local display_parts = {}
-  local total_length = #prefix
-  local files_added = 0
-
-  -- Start from current and expand outward
-  local before_idx = current_idx - 1
-  local after_idx = current_idx + 1
-
-  -- Always add current file first
-  local current_arg = vim.fn.argv(current_idx - 1)
-  local current_file = current_arg:match("^.+/(.+)$") or current_arg
-  local current_cropped = crop_filename(current_file, max_filename_length, M.config.filename.crop_strategy)
-  local current_display = current_cropped
-
-  table.insert(display_parts, { text = current_display, idx = current_idx, is_current = true })
-  total_length = total_length + #current_display
-  files_added = 1
-
-  -- Add files before and after alternately while there's space
-  while (before_idx >= 1 or after_idx <= argc) and files_added < estimated_files_visible do
-    local added = false
-
-    -- Try adding before
-    if before_idx >= 1 then
-      local arg = vim.fn.argv(before_idx - 1)
-      local filename = arg:match("^.+/(.+)$") or arg
-      local cropped = crop_filename(filename, max_filename_length, M.config.filename.crop_strategy)
-      local needed_space = #cropped + 3 -- +3 for "  " separator
-
-      if total_length + needed_space < available_width then
-        table.insert(display_parts, 1, { text = cropped, idx = before_idx, is_current = false })
-        total_length = total_length + needed_space
-        before_idx = before_idx - 1
-        files_added = files_added + 1
-        added = true
-      else
-        before_idx = 0 -- Stop trying before
-      end
-    end
-
-    -- Try adding after
-    if after_idx <= argc and files_added < estimated_files_visible then
-      local arg = vim.fn.argv(after_idx - 1)
-      local filename = arg:match("^.+/(.+)$") or arg
-      local cropped = crop_filename(filename, max_filename_length, M.config.filename.crop_strategy)
-      local needed_space = #cropped + 3 -- +3 for "  " separator
-
-      if total_length + needed_space < available_width then
-        table.insert(display_parts, { text = cropped, idx = after_idx, is_current = false })
-        total_length = total_length + needed_space
-        after_idx = after_idx + 1
-        files_added = files_added + 1
-        added = true
-      else
-        after_idx = argc + 1 -- Stop trying after
-      end
-    end
-
-    if not added then
-      break
-    end
+  -- Use nvim_echo for colored output
+  if argc > 0 then
+    vim.api.nvim_echo(output, false, {})
+  else
+    vim.notify("No files in argument list", vim.log.levels.INFO)
   end
-
-  -- Build final display line
-  local final_parts = { prefix }
-  local first_idx = display_parts[1].idx
-  local last_idx = display_parts[#display_parts].idx
-
-  if first_idx > 1 then
-    table.insert(final_parts, "… ")
-  end
-
-  for i, part in ipairs(display_parts) do
-    table.insert(final_parts, part.text)
-    if i < #display_parts then
-      table.insert(final_parts, "  ")
-    end
-  end
-
-  if last_idx < argc then
-    table.insert(final_parts, " …")
-  end
-
-  local display_line = table.concat(final_parts)
-
-  -- Create full-width floating window
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { display_line })
-
-  local win = vim.api.nvim_open_win(buf, false, {
-    relative = "editor",
-    width = editor_width,
-    height = 1,
-    col = 0,
-    row = editor_height - 3,
-    style = "minimal",
-    border = "none",
-  })
-
-  -- Apply highlighting for current file
-  local ns = vim.api.nvim_create_namespace("args_workflow")
-  local highlight_start = string.find(display_line, current_display, 1, true)
-  if highlight_start then
-    vim.api.nvim_buf_add_highlight(
-      buf,
-      ns,
-      M.config.display.current_hl,
-      0,
-      highlight_start - 1,
-      highlight_start - 1 + #current_display
-    )
-  end
-
-  -- Auto-close window
-  vim.defer_fn(function()
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
-    end
-  end, 1500)
-end
-
--- Function to display args horizontally with ellipsis at bottom
-function M.show_args_horizontal()
-  local argc = vim.fn.argc()
-  local current_idx = vim.fn.argidx() + 1 -- Convert from 0-based to 1-based
-  local current_buf = vim.fn.bufname()
-
-  -- Build display with context around current file
-  local items = {}
-  local context_size = 2 -- Show 2 files before and after current
-
-  -- Determine range to show
-  local start_idx = math.max(1, current_idx - context_size)
-  local end_idx = math.min(argc, current_idx + context_size)
-
-  -- Add leading ellipsis if needed
-  if start_idx > 1 then
-    table.insert(items, "…")
-  end
-
-  -- Add files in range
-  for i = start_idx, end_idx do
-    local arg = vim.fn.argv(i - 1)
-    local fileName = arg:match("^.+/(.+)$") or arg
-
-    if i == current_idx then
-      table.insert(items, M.config.display.current_indicator .. fileName)
-    else
-      table.insert(items, fileName)
-    end
-  end
-
-  -- Add trailing ellipsis if needed
-  if end_idx < argc then
-    table.insert(items, "...")
-  end
-
-  -- Create display line
-  local display_line = table.concat(items, "  ")
-
-  -- Calculate window dimensions
-  local editor_width = vim.api.nvim_get_option("columns")
-  local editor_height = vim.api.nvim_get_option("lines")
-  local width = math.min(#display_line + 4, editor_width - 4)
-
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { display_line })
-
-  local win = vim.api.nvim_open_win(buf, false, {
-    relative = "editor",
-    width = width,
-    height = 1,
-    col = math.floor((editor_width - width) / 2),
-    row = editor_height - 3,
-    style = "minimal",
-    border = "single",
-  })
-
-  -- Apply highlights for current file
-  local ns = vim.api.nvim_create_namespace("args_workflow")
-  local current_arg = vim.fn.argv(current_idx - 1)
-  local current_file = current_arg:match("^.+/(.+)$") or current_arg
-  local highlighted_text = M.config.display.current_indicator .. current_file
-  local highlight_start = string.find(display_line, highlighted_text, 1, true)
-
-  if highlight_start then
-    vim.api.nvim_buf_add_highlight(
-      buf,
-      ns,
-      M.config.display.current_hl,
-      0,
-      highlight_start - 1,
-      highlight_start - 1 + #highlighted_text
-    )
-  end
-
-  -- Auto-close window
-  vim.defer_fn(function()
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
-    end
-  end, 1500)
 end
 
 -- Enhanced function to add current buffer to args with feedback
