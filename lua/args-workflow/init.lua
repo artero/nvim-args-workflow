@@ -87,7 +87,7 @@ function M.safe_prev_arg()
     vim.cmd("prev")
     M.print_args()
   else
-    vim.notify("Already at first argument", vim.log.levels.INFO)
+    M.safe_last_arg() -- Wrap around to last
     M.print_args()
   end
 end
@@ -99,7 +99,7 @@ function M.safe_next_arg()
     vim.cmd("next")
     M.print_args()
   else
-    vim.notify("Already at last argument", vim.log.levels.INFO)
+    M.safe_first_arg() -- Wrap around to first
     M.print_args()
   end
 end
