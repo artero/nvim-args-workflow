@@ -1,15 +1,15 @@
-# 🎯 nvim-args-workflow
+# nvim-args-workflow
 
 > Enhanced Vim argument list workflow for Neovim with visual feedback and Telescope integration
 
 A powerful Neovim plugin that supercharges Vim's argument list functionality with:
-- 🎨 **Visual feedback** with color-coded display
-- 🔍 **Telescope integration** for seamless file selection
-- ⚡ **Smart navigation** with enhanced commands
-- 🎣 **Auto-sync** - args list updates automatically
-- 🛡️ **Error handling** - no more annoying Vim errors
+- **Visual feedback** with color-coded display
+- **Telescope integration** for seamless file selection
+- **Smart navigation** with enhanced commands
+- **Auto-sync** - args list updates automatically
+- **Error handling** - no more annoying Vim errors
 
-## ✨ Features
+## Features
 
 ### Visual Args Display
 ```
@@ -34,7 +34,7 @@ Args (3): ► config.lua  editor.lua  init.lua
 - `<leader>ad` - Remove current file from args  
 - `<leader>aD` - Clear all args
 
-## 📦 Installation
+## Installation
 
 ### With [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
@@ -60,7 +60,7 @@ use {
 }
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ```lua
 require('args-workflow').setup({
@@ -95,7 +95,7 @@ require('args-workflow').setup({
 })
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Basic Workflow
 1. **Build your args list:**
@@ -126,7 +126,7 @@ require('args-workflow').setup({
 - Visual feedback shows automatically
 - No need to manually refresh
 
-## 🎨 Customization
+## Customization
 
 ### Custom Highlights
 ```lua
@@ -153,24 +153,24 @@ require('args-workflow').setup({
 })
 ```
 
-## 📋 Requirements
+## Requirements
 
 - Neovim >= 0.8.0
 - [nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (optional but recommended)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feat/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by
   - [Mastering Vim Quickly: From WTF to OMG in no time](https://www.amazon.com/Mastering-Vim-Quickly-WTF-time/dp/1983325740)
