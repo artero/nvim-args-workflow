@@ -172,8 +172,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by [Mastering Vim Quickly: From WTF to OMG in no time](https://www.amazon.com/Mastering-Vim-Quickly-WTF-time/dp/1983325740)
-- [Harpoon Plugin](https://github.com/ThePrimeagen/harpoon)
+- Inspired by
+  - [Mastering Vim Quickly: From WTF to OMG in no time](https://www.amazon.com/Mastering-Vim-Quickly-WTF-time/dp/1983325740)
+  - [Harpoon Plugin](https://github.com/ThePrimeagen/harpoon)
 - Built for the modern Neovim ecosystem
 - Telescope integration for seamless workflows
 
