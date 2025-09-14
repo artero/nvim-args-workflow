@@ -12,9 +12,8 @@ A powerful Neovim plugin that supercharges Vim's argument list functionality wit
 ## Features
 
 ### Visual Args Display
-```
-Args (3): ► config.lua  editor.lua  init.lua
-```
+![args-workflow](args-window.png)
+
 - Current file highlighted with `►` in **green**
 - Other files in **muted gray**  
 - File count in **blue title**
@@ -162,7 +161,7 @@ require('args-workflow').setup({
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feat/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
 
