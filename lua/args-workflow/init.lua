@@ -16,7 +16,7 @@ local default_config = {
   display = {
     current_indicator = "►", -- Indicator for current file
     title_hl = "Title", -- Highlight group for title
-    current_hl = "String", -- Highlight group for current file
+    current_hl = "Normal", -- Highlight group for current file
     other_hl = "Comment", -- Highlight group for other files
   },
 
@@ -28,19 +28,103 @@ local default_config = {
   auto_display = {
     enable = true, -- Auto-display on args changes
     delay = 50, -- Delay in milliseconds
+    timeout = 1000, -- Timeout for auto-close
   },
 }
 
 -- Plugin configuration
 M.config = {}
 
+local function print_args(output, argc, timeout)
+  if not output or #output == 0 then
+    return
+  end
+
+  -- Calculate the width of the longest line
+  local max_width = 0
+  for _, line in ipairs(output) do
+    local text = line[1] or ""
+    local width = vim.fn.strdisplaywidth(text)
+    if width > max_width then
+      max_width = width
+    end
+  end
+
+  -- Add some padding
+  max_width = max_width + 4
+
+  -- Get screen dimensions
+  local screen_width = vim.o.columns
+  local screen_height = vim.o.lines
+
+  -- Calculate window dimensions and position
+  local win_width = screen_width -- Use full screen width
+  local win_height = 1 -- Single line for concatenated content
+
+  -- Position at bottom of screen
+  local row = screen_height - win_height - 3 -- Leave space for cmdline
+  local col = 0 -- Start at left edge
+
+  -- Create buffer for the float window
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Prepare concatenated content for the buffer
+  local content_parts = {}
+  for _, line in ipairs(output) do
+    table.insert(content_parts, line[1] or "")
+  end
+  local concatenated_content = table.concat(content_parts, " ")
+
+  -- Calculate how many lines the content will need
+  local content_width = vim.fn.strdisplaywidth(concatenated_content)
+  local lines_needed = math.max(1, math.ceil(content_width / win_width))
+  win_height = math.min(lines_needed, 10) -- Limit to 10 lines max
+
+  -- Update row position based on actual height
+  row = screen_height - win_height - 3
+
+  -- Set buffer content as single line (will wrap automatically)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { concatenated_content })
+
+  -- Create float window
+  local win = vim.api.nvim_open_win(buf, false, {
+    relative = "editor",
+    width = win_width,
+    height = win_height,
+    row = row,
+    col = col,
+    style = "minimal",
+    border = "rounded",
+    title = " Args (" .. argc .. "): ",
+    title_pos = "center",
+  })
+
+  -- Apply highlighting to the concatenated content
+  local char_offset = 0
+  for i, line in ipairs(output) do
+    local text = line[1] or ""
+    local hl_group = line[2] or "Normal"
+    if hl_group ~= "Normal" then
+      vim.api.nvim_buf_add_highlight(buf, -1, hl_group, 0, char_offset, char_offset + #text)
+    end
+    char_offset = char_offset + #text
+    if i < #output then
+      char_offset = char_offset + 1 -- Add space separator
+    end
+  end
+
+  -- Auto-close the window after 3 seconds or on any key press
+  vim.defer_fn(function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end, timeout)
+end
+
 -- Function to display the argument list with visual indicators and colors
-function M.print_args()
+function M.update_args()
   local output = {}
   local argc = vim.fn.argc()
-
-  -- Show count in title
-  table.insert(output, { "Args (" .. argc .. "): ", M.config.display.title_hl })
 
   for i = 1, argc do
     local arg = vim.fn.argv(i - 1)
@@ -62,7 +146,7 @@ function M.print_args()
 
   -- Use nvim_echo for colored output
   if argc > 0 then
-    vim.api.nvim_echo(output, false, {})
+    print_args(output, argc, M.config.auto_display.timeout)
   else
     vim.notify("No files in argument list", vim.log.levels.INFO)
   end
@@ -85,10 +169,10 @@ function M.safe_prev_arg()
   local current_idx = vim.fn.argidx()
   if current_idx > 0 then
     vim.cmd("prev")
-    M.print_args()
+    M.update_args()
   else
     M.safe_last_arg() -- Wrap around to last
-    M.print_args()
+    M.update_args()
   end
 end
 
@@ -97,17 +181,17 @@ function M.safe_next_arg()
   local total_args = vim.fn.argc()
   if current_idx < total_args - 1 then
     vim.cmd("next")
-    M.print_args()
+    M.update_args()
   else
     M.safe_first_arg() -- Wrap around to first
-    M.print_args()
+    M.update_args()
   end
 end
 
 function M.safe_first_arg()
   if vim.fn.argc() > 0 then
     vim.cmd("first")
-    M.print_args()
+    M.update_args()
   else
     vim.notify("No arguments in list", vim.log.levels.WARN)
   end
@@ -116,7 +200,7 @@ end
 function M.safe_last_arg()
   if vim.fn.argc() > 0 then
     vim.cmd("last")
-    M.print_args()
+    M.update_args()
   else
     vim.notify("No arguments in list", vim.log.levels.WARN)
   end
@@ -133,7 +217,7 @@ function M.setup_keymaps()
   vim.keymap.set("n", "]A", M.safe_last_arg, { desc = "Last arg file" })
 
   -- Args management keymaps
-  vim.keymap.set("n", keymaps.list, M.print_args, { desc = "[A]rgs [L]ist" })
+  vim.keymap.set("n", keymaps.list, M.update_args, { desc = "[A]rgs [L]ist" })
   vim.keymap.set("n", keymaps.add, M.add_current_to_args, { desc = "[A]rgs [A]dd current file" })
   vim.keymap.set("n", keymaps.delete, function()
     vim.cmd("argd")
@@ -167,7 +251,7 @@ function M.setup_autocommands()
       last_args_count = current_count
       last_args_list = current_list
       -- Small delay to ensure arg operations are complete
-      vim.defer_fn(M.print_args, M.config.auto_display.delay)
+      vim.defer_fn(M.update_args, M.config.auto_display.delay)
     end
   end
 

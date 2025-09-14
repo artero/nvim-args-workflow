@@ -75,21 +75,22 @@ require('args-workflow').setup({
   -- Visual configuration
   display = {
     current_indicator = '►',    -- Indicator for current file
-    title_hl = 'Title',        -- Highlight group for title
-    current_hl = 'String',     -- Highlight group for current file
-    other_hl = 'Comment',      -- Highlight group for other files
+    title_hl = 'Title',         -- Highlight group for title
+    current_hl = 'String',      -- Highlight group for current file
+    other_hl = 'Comment',       -- Highlight group for other files
   },
   
   -- Telescope integration
   telescope = {
-    enable = true,             -- Enable telescope integration
-    keymap = '<C-a>',         -- Key to convert selection to args
+    enable = true,              -- Enable telescope integration
+    keymap = '<C-a>',           -- Key to convert selection to args
   },
   
   -- Auto-display configuration  
   auto_display = {
-    enable = true,             -- Auto-display on args changes
-    delay = 50,               -- Delay in milliseconds
+    enable = true,              -- Auto-display on args changes
+    delay = 50,                 -- Delay in milliseconds
+    timeout = 1000,             -- Timeout for auto-close
   },
 })
 ```
